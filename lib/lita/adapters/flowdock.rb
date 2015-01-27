@@ -9,9 +9,16 @@ module Lita
       config :organization, type: String, required: true
       config :flows, type: [Symbol, Array], required: true
 
+      attr_reader :connector
+
       def initialize(robot)
         super
-        @connector = Connector.new(robot, config.api_key, config.flows)
+        @connector = Connector.new(
+          robot,
+          config.api_key,
+          config.organization,
+          config.flows
+        )
       end
 
       def mention_format(name)
