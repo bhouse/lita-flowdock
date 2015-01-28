@@ -28,7 +28,7 @@ module Lita
       def run
         connector.connect
         robot.trigger(:connected)
-        sleep
+        Lita.logger.info("Connected")
       end
 
       def shut_down

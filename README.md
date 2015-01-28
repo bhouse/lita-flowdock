@@ -1,24 +1,39 @@
 # lita-flowdock
 
-TODO: Add a description of the plugin.
-
-## Installation
-
-Add lita-flowdock to your Lita instance's Gemfile:
-
-``` ruby
-gem "lita-flowdock"
+## Testing
+```shell
+git clone https://github.com/litaio/development-environment ~/lita-dev
+git clone git@github.com:bhouse/lita-flowdock.git ~/lita-dev/lita-flowdock
+cd ~/lita-dev
+vagrant up
+vagrant ssh
 ```
 
+On the vagrant vm:
 
-## Configuration
+```shell
+export $ORG=<flowdock organization name>
+export $FLOW_NAME=<flowdock flow name>
+export $FLOW_API_TOKEN=<flowdock flow api token>
+```
 
-TODO: Describe any configuration attributes the plugin exposes.
-
-## Usage
-
-TODO: Describe the plugin's features and how to use them.
-
-## License
-
-[MIT](http://opensource.org/licenses/MIT)
+```shell
+cd /vagrant
+lita new .
+echo 'gem "lita-whois"' >> Gemfile
+echo 'gem "lita-flowdock", git: "git@github.com:bhouse/lita-flowdock.git", branch: "master"' >> Gemfile
+bundle config local.lita-flowdock /vagrant/lita-flowdock
+cat << EOF > lita_config.rb
+Lita.configure do |config|
+  config.robot.name = "Lita"
+  config.robot.log_level = :info
+  config.robot.adapter = :flowdock
+  config.adapters.flowdock.api_key = "$FLOW_API_TOKEN"
+  config.adapters.flowdock.organization = "$ORG"
+  config.adapters.flowdock.flows = ["$FLOW_NAME"]
+end
+EOF
+apt-get update && apt-get install build-essential -y
+bundle install --path vendor/bundle
+bundle exec lita
+```

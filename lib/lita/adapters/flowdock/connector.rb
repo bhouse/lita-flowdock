@@ -16,29 +16,28 @@ module Lita
         end
 
         def connect
-          client_connect
-        end
+          log.info("Connecting to Flowdock")
+          EventMachine.run do
+            stream_connect = connect_request.get(
+              :head => {
+                'Authorization' => [api_key, ''],
+                'accept' => 'application/json'
+              }
+            )
+            log.info("STREAM: #{stream_connect.inspect}")
 
-        private
-          def client_connect
-            Lita.logger.info("Connecting to Flowdock")
-            EventMachine.run do
-              stream_connect = connect_request.get(
-                :head => {
-                  'Authorization' => [api_key, ''],
-                  'accept' => 'application/json'
-                }
-              )
-
-              buffer = ""
-              stream_connect.stream do |chunk|
-                buffer << chunk
-                while line == buffer.slice!(/.+\r\n/)
-                  puts JSON.parse(line).inspect
-                end
+            buffer = ""
+            stream_connect.stream do |chunk|
+              log.info("CHUNK: #{chunk.inspect}")
+              buffer << chunk
+              while line == buffer.slice!(/.+\r\n/)
+                log.info("LINE: #{JSON.parse(line).inspect}")
               end
             end
           end
+        end
+
+        private
 
           def connect_request
             @http ||= EM::HttpRequest.new(
@@ -51,6 +50,10 @@ module Lita
 
           def request_flows
             flows.map {|f| "#{organization}/#{f}" }.join(",")
+          end
+
+          def log
+            Lita.logger
           end
       end
     end
