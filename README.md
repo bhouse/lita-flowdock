@@ -35,5 +35,6 @@ end
 EOF
 apt-get update && apt-get install build-essential -y
 bundle install --path vendor/bundle
+bundle update
 bundle exec lita
 ```
