@@ -2,9 +2,8 @@ module Lita
   module Adapters
     class Flowdock < Adapter
       class MessageHandler
-        def initialize(robot, robot_id, data)
+        def initialize(robot, data)
           @robot = robot
-          @robot_id = robot_id
           @data = data
           @type = data['event']
         end
@@ -19,10 +18,18 @@ module Lita
         end
 
         private
-          attr_reader :robot, :robot_id, :data, :type
+          attr_reader :robot, :data, :type
 
           def handle_message
             log.debug("Handling message: #{data.inspect}")
+          end
+
+          def handle_user_activity
+            log.debug("Handling user activity: #{data.inspect}")
+          end
+
+          def log
+            Lita.logger
           end
       end
     end

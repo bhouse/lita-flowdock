@@ -5,14 +5,15 @@ require 'lita/adapters/flowdock/message_handler'
 module Lita
   module Adapters
     class Flowdock < Adapter
-      class Stream
+      class Connector
         attr_reader :robot, :api_token, :organization, :flows, :source
 
-        def initialize(robot, api_token, organization, flows)
+        def initialize(robot, api_token, organization, flows, flowdock_client)
           @robot = robot
           @api_token = api_token
           @organization = organization
           @flows = flows
+          @flowdock_client = flowdock_client
         end
 
         def run
@@ -50,8 +51,7 @@ module Lita
 
           def receive_message(event)
             log.debug("Event received: #{event.inspect}")
-            data = MultiJson.load(event)
-            MessageHandler.new(robot, robot_id, data).handle
+            MessageHandler.new(robot, event).handle
           end
 
           def request_flows
