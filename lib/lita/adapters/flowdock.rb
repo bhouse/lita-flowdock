@@ -1,21 +1,22 @@
-require "lita/adapters/flowdock/connector"
+require "lita/adapters/flowdock/stream"
 
 module Lita
   module Adapters
     class Flowdock < Adapter
       namespace "flowdock"
 
-      config :api_key, type: String, required: true
+      config :api_token, type: String, required: true
       config :organization, type: String, required: true
       config :flows, type: [Symbol, Array], required: true
 
-      attr_reader :connector
+      attr_reader :stream
 
       def initialize(robot)
         super
-        @connector = Connector.new(
+
+        @stream = Stream.new(
           robot,
-          config.api_key,
+          config.api_token,
           config.organization,
           config.flows
         )
@@ -26,12 +27,16 @@ module Lita
       end
 
       def run
-        connector.connect
-        robot.trigger(:connected)
-        Lita.logger.info("Connected")
+        stream.run
+      rescue Interrupt
+        shut_down
       end
 
       def shut_down
+        stream.source.close
+      rescue RuntimeError
+        robot.trigger(:disconnected)
+        log.info("Disconnected")
       end
 
       def send_messages(target, messages)
