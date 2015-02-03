@@ -1,12 +1,14 @@
 require 'eventmachine'
 require 'em-eventsource'
 require 'lita/adapters/flowdock/message_handler'
+require 'lita/adapters/flowdock/users_creator'
 
 module Lita
   module Adapters
     class Flowdock < Adapter
       class Connector
-        attr_reader :robot, :api_token, :organization, :flows, :source
+        attr_reader :robot, :api_token, :organization, :flows, :source,
+          :flowdock_client
 
         def initialize(robot, api_token, organization, flows, flowdock_client)
           @robot = robot
@@ -14,6 +16,8 @@ module Lita
           @organization = organization
           @flows = flows
           @flowdock_client = flowdock_client
+
+          UsersCreator.create_users flowdock_client.get('/users')
         end
 
         def run
@@ -51,7 +55,7 @@ module Lita
 
           def receive_message(event)
             log.debug("Event received: #{event.inspect}")
-            MessageHandler.new(robot, event).handle
+            MessageHandler.new(robot, event, flowdock_client).handle
           end
 
           def request_flows
