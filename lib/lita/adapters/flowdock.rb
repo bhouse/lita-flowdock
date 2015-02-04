@@ -43,6 +43,9 @@ module Lita
       end
 
       def send_messages(target, messages)
+        messages.each do |message|
+          flowdock_client.chat_message(flow: target.room, content: message)
+        end
       end
     end
 
