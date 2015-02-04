@@ -4,8 +4,9 @@ module Lita
   module Adapters
     class Flowdock < Adapter
       class MessageHandler
-        def initialize(robot, data, flowdock_client)
+        def initialize(robot, robot_id, data, flowdock_client)
           @robot = robot
+          @robot_id = robot_id
           @data = data
           @flowdock_client = flowdock_client
           @type = data['event']
@@ -25,7 +26,7 @@ module Lita
         end
 
         private
-          attr_reader :robot, :data, :type, :flowdock_client
+          attr_reader :robot, :robot_id, :data, :type, :flowdock_client
 
           def body
             data['content']
@@ -41,6 +42,10 @@ module Lita
             data['flow']
           end
 
+          def from_self?(user)
+            user.id.to_i == robot_id
+          end
+
           def log
             Lita.logger
           end
@@ -48,6 +53,7 @@ module Lita
           def handle_message
             log.debug("Handling message: #{data.inspect}")
             user = User.find_by_id(data['user']) || User.create(data['user'])
+            return if from_self?(user)
             dispatch_message(user)
           end
 

@@ -7,21 +7,30 @@ module Lita
       namespace "flowdock"
 
       config :api_token, type: String, required: true
+      config :bot_name, type: String, required: true
       config :organization, type: String, required: true
       config :flows, type: [Symbol, Array], required: true
 
-      attr_reader :connector, :flowdock_client
+      attr_reader :connector, :flowdock_client, :bot_name
 
       def initialize(robot)
         super
 
+        @bot_name = config.bot_name
         @flowdock_client = ::Flowdock::Client.new(api_token: config.api_token)
+        robot_id = begin
+                     @flowdock_client.get('/users').select do |user|
+                       user['name'].downcase == bot_name.downcase
+                     end.first['id'].to_i
+                   end
+        log.debug("Bot id: #{robot_id}")
         @connector = Connector.new(
           robot,
           config.api_token,
           config.organization,
           config.flows,
-          flowdock_client
+          flowdock_client,
+          robot_id
         )
       end
 
@@ -48,6 +57,7 @@ module Lita
         end
       end
     end
+
 
     Lita.register_adapter(:flowdock, Flowdock)
   end
