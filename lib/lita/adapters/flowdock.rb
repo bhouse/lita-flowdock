@@ -11,53 +11,45 @@ module Lita
       config :organization, type: String, required: true
       config :flows, type: [Symbol, Array], required: true
 
-      attr_reader :connector, :flowdock_client, :bot_name
-
-      def initialize(robot)
-        super
-
-        @bot_name = config.bot_name
-        @flowdock_client = ::Flowdock::Client.new(api_token: config.api_token)
-        robot_id = begin
-                     @flowdock_client.get('/users').select do |user|
-                       user['name'].downcase == bot_name.downcase
-                     end.first['id'].to_i
-                   end
-        log.debug("Bot id: #{robot_id}")
-        @connector = Connector.new(
-          robot,
-          config.api_token,
-          config.organization,
-          config.flows,
-          flowdock_client,
-          robot_id
-        )
-      end
 
       def mention_format(name)
         "@#{name}"
       end
 
       def run
+        return if connector
+        @connector = Connector.new(
+          robot,
+          config.api_token,
+          config.organization,
+          config.flows
+        )
+
         connector.run
       rescue Interrupt
         shut_down
       end
 
       def shut_down
-        connector.source.close
+        return unless connector
+        connector.shut_down
       rescue RuntimeError
         robot.trigger(:disconnected)
         log.info("Disconnected")
       end
 
       def send_messages(target, messages)
-        messages.each do |message|
-          flowdock_client.chat_message(flow: target.room, content: message)
-        end
+        connector.send_messages(target.room, messages)
       end
-    end
 
+      private
+
+        attr_reader :connector
+
+        def bot_name
+          config.bot_name
+        end
+    end
 
     Lita.register_adapter(:flowdock, Flowdock)
   end

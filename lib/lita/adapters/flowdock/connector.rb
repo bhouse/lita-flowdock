@@ -1,5 +1,6 @@
 require 'eventmachine'
 require 'em-eventsource'
+require 'flowdock'
 require 'lita/adapters/flowdock/message_handler'
 require 'lita/adapters/flowdock/users_creator'
 
@@ -7,16 +8,14 @@ module Lita
   module Adapters
     class Flowdock < Adapter
       class Connector
-        attr_reader :robot, :api_token, :organization, :flows, :source,
-          :flowdock_client, :robot_id
 
-        def initialize(robot, api_token, organization, flows, flowdock_client, robot_id)
+        def initialize(robot, api_token, organization, flows)
           @robot = robot
           @api_token = api_token
           @organization = organization
           @flows = flows
-          @flowdock_client = flowdock_client
-          @robot_id = robot_id
+          @flowdock_client = Flowdock::Client.new(api_token: api_token)
+          @robot_id = flowdock_client.get('/user')['id']
 
           UsersCreator.create_users flowdock_client.get('/users')
         end
@@ -29,7 +28,7 @@ module Lita
               {'Accept' => 'text/event-stream'}
             )
 
-            source.open do |open|
+            source.open do
               log.info("Connected to flowdock streaming API")
               robot.trigger(:connected)
             end
@@ -48,7 +47,18 @@ module Lita
           end
         end
 
+        def send_messages(target, messages)
+          messages.each do |message|
+            flowdock_client.chat_message(flow: target, content: message)
+          end
+        end
+
+        def shut_down
+          source.close
+        end
+
         private
+          attr_reader :robot, :api_token, :organization, :flows, :source
 
           def log
             Lita.logger
