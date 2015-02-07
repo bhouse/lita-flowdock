@@ -1,10 +1,10 @@
 require 'flowdock'
-require "lita/adapters/flowdock/connector"
+require 'lita/adapters/flowdock/connector'
 
 module Lita
   module Adapters
     class Flowdock < Adapter
-      namespace "flowdock"
+      namespace 'flowdock'
 
       config :api_token, type: String, required: true
       config :bot_name, type: String, required: true
@@ -35,7 +35,7 @@ module Lita
         connector.shut_down
       rescue RuntimeError
         robot.trigger(:disconnected)
-        log.info("Disconnected")
+        log.info('Disconnected')
       end
 
       def send_messages(target, messages)
