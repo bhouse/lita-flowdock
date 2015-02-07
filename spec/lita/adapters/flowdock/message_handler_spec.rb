@@ -7,7 +7,23 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
   let(:robot) {
     instance_double('Lita::Robot', name: 'Lita', mention_name: 'lita')
   }
-  let(:robot_id) { '123456' }
+  let(:robot_id) { 123456 }
+  let(:robot_fd_user) {
+    { 'id' => robot_id, 'name' => 'Lita', 'nick' => 'lita' }
+  }
+  let(:test_user_id) { 3 }
+  let(:test_fd_user) {
+    { 'id' => test_user_id, 'name' => 'Test User3', 'nick' => 'user3' }
+  }
+  let(:test_flow) { 'testing:lita-test' }
+
+  before do
+    allow(fd_client).to receive(:get).with(
+      "/user/#{robot_id}").and_return(robot_fd_user)
+    allow(fd_client).to receive(:get).with(
+      "/user/#{test_user_id}").and_return(test_fd_user)
+    allow(robot).to receive(:alias)
+  end
 
   describe "#handle" do
     context "with a normal message" do
@@ -15,19 +31,19 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
         {
           'content' => 'Hello World!',
           'event'   => 'message',
-          'flow'    => 'testing:lita-test',
-          'user'  => 11211
+          'flow'    => test_flow,
+          'user'    => test_user_id
         }
       end
       let(:message) { instance_double('Lita::Message', command!: false) }
       let(:source) { instance_double('Lita::Source', private_message?: false) }
-      let(:user) { instance_double('Lita::User', id: 11211) }
+      let(:user) { instance_double('Lita::User', id: test_user_id) }
 
       before do
         allow(Lita::User).to receive(:find_by_id).and_return(user)
         allow(Lita::Source).to receive(:new).with(
           user: user,
-          room: 'testing:lita-test'
+          room: test_flow
         ).and_return(source)
         allow(Lita::Message).to receive(:new).with(
           robot, 'Hello World!', source).and_return(message)
@@ -36,6 +52,105 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
 
       it "dispatches the message to lita" do
         expect(robot).to receive(:receive).with(message)
+
+        subject.handle
+      end
+
+      context "when the message is nil" do
+        let(:data) do
+          {
+            'event'   => 'message',
+            'flow'    => test_flow,
+            'user'    => test_user_id,
+          }
+        end
+
+        it "dispatches an empty message to Lita" do
+          expect(Lita::Message).to receive(:new).with(
+            robot,
+            "",
+            source
+          ).and_return(message)
+
+          subject.handle
+        end
+      end
+    end
+
+    context "with a message with an unsupported type" do
+      let(:data) do
+        {
+          'content' => 'this type is not supported',
+          'event'   => 'unsupported',
+          'flow'    => test_flow,
+          'user'    => test_user_id
+        }
+      end
+
+      it "does not dispatch the message to Lita" do
+        expect(robot).not_to receive(:receive)
+
+        subject.handle
+      end
+    end
+
+    context "with a message from the robot itself" do
+      let(:data) do
+        {
+          'content' => 'reply from lita',
+          'event'   => 'message',
+          'flow'    => test_flow,
+          'user'    => robot_id
+        }
+      end
+      let(:robot_user) { instance_double('Lita::User', id: robot_id) }
+
+      before do
+        allow(Lita::User).to receive(:find_by_id).and_return(robot_user)
+      end
+
+      it "does not dispatch the message to Lita" do
+        expect(robot).not_to receive(:receive)
+
+        subject.handle
+      end
+    end
+
+    context "with a message from an unknown user" do
+      let(:new_user_id) { 4 }
+      let(:new_fd_user) {
+        { 'id' => new_user_id, 'name' => 'Test User4', 'nick' => 'user4' }
+      }
+
+
+      let(:data) do
+        {
+          'content' => "hi i'm new here",
+          'event'   => 'message',
+          'flow'    => test_flow,
+          'user'    => new_user_id
+        }
+      end
+      let(:user4) { instance_double(
+        'Lita::User', id: 4, name: 'Test User4', mention_name: 'user4'
+      )}
+
+      before do
+        allow(Lita::User).to receive(:find_by_id).with(
+          new_user_id).and_return(nil)
+        allow(fd_client).to receive(:get).with(
+          "/user/#{new_user_id}").and_return(new_fd_user)
+        allow(robot).to receive(:receive)
+      end
+
+      it "creates the new user" do
+        expect(Lita::User).to receive(:create).with(
+          new_user_id,
+          {
+            "name"  => 'Test User4',
+            "mention_name"  => 'user4'
+          }
+        ).and_return(user4)
 
         subject.handle
       end

@@ -7,8 +7,10 @@ module Lita
             Lita.logger.debug("Creating user: #{flowdock_user['nick']}")
             User.create(
               flowdock_user['id'],
-              name: flowdock_user['name'],
-              mention_name: flowdock_user['nick']
+              {
+               'name'         => flowdock_user['name'],
+               'mention_name' => flowdock_user['nick']
+              }
             )
           end
 

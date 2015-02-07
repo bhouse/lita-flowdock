@@ -29,7 +29,7 @@ module Lita
           attr_reader :robot, :robot_id, :data, :type, :flowdock_client
 
           def body
-            data['content']
+            data['content'] || ""
           end
 
           def dispatch_message(user)
@@ -52,7 +52,8 @@ module Lita
 
           def handle_message
             log.debug("Handling message: #{data.inspect}")
-            user = User.find_by_id(data['user']) || User.create(data['user'])
+            user = User.find_by_id(data['user']) || create_user(data['user'])
+            log.debug("User found: #{user.inspect}")
             return if from_self?(user)
             dispatch_message(user)
           end
@@ -70,6 +71,11 @@ module Lita
 
           def handle_unknown
             log.debug("Unknown message type: #{data.inspect}")
+          end
+
+          def create_user(id)
+            user = flowdock_client.get("/user/#{id}")
+            UsersCreator.create_user(user)
           end
       end
     end

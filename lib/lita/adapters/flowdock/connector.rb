@@ -17,7 +17,7 @@ module Lita
           @client =
             flowdock_client || Flowdock::Client.new(api_token: api_token)
 
-          UsersCreator.create_users client.get('/users')
+          UsersCreator.create_users(client.get('/users'))
         end
 
         def run
