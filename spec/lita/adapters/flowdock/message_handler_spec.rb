@@ -26,7 +26,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
   end
 
   describe "#handle" do
-    context "with a normal message" do
+    context "a normal message" do
       let(:data) do
         {
           'content' => 'Hello World!',
@@ -77,7 +77,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
       end
     end
 
-    context "with a message with an unsupported type" do
+    context "a message with an unsupported type" do
       let(:data) do
         {
           'content' => 'this type is not supported',
@@ -94,7 +94,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
       end
     end
 
-    context "with a message from the robot itself" do
+    context "a message from the robot itself" do
       let(:data) do
         {
           'content' => 'reply from lita',
@@ -116,7 +116,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
       end
     end
 
-    context "with a message from an unknown user" do
+    context "a message from an unknown user" do
       let(:new_user_id) { 4 }
       let(:new_fd_user) {
         { 'id' => new_user_id, 'name' => 'Test User4', 'nick' => 'user4' }
@@ -153,6 +153,104 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
         ).and_return(user4)
 
         subject.handle
+      end
+    end
+
+    context "receives a user activity message" do
+      let(:data) do
+        {
+          'content' => { 'last_activity' => 1317715364447 },
+          'event'   => 'activity.user',
+          'flow'    => test_flow,
+          'user'    => test_user_id
+        }
+      end
+
+      it "doesn't dispatch a message to Lita" do
+        expect(robot).not_to receive(:receive)
+
+        subject.handle
+      end
+    end
+
+    context "receives an action message" do
+      context "for adding a user to the flow" do
+        let(:data) do
+          {
+            'content' => {'type' => 'add_people', 'description' => 'user5'},
+            'event' => 'action',
+            'flow'  => test_flow,
+            'user'  => test_user_id
+          }
+        end
+        let(:added_user_id) { 5 }
+        let(:added_user_fd) do
+          { 'id' => 5, 'name' => 'Test User5', 'nick' => 'user5' }
+        end
+
+        before do
+          allow(Lita::User).to receive(:find_by_id).with(5).and_return(nil)
+          allow(fd_client).to receive(:get).with(
+            "/user/#{added_user_id}").and_return(added_user_fd)
+          allow(robot).to receive(:receive)
+          allow(fd_client).to receive(:get).with(
+            '/users').and_return([added_user_fd])
+        end
+
+        it "creates the new user" do
+          expect(Lita::User).to receive(:create).with(
+            5, { 'name' => 'Test User5', 'mention_name' => 'user5' })
+          subject.handle
+        end
+      end
+
+      context "for a user joining the flow" do
+        let(:joining_user_id) { 6 }
+        let(:joining_user_fd) do
+          { 'id' => 6, 'name' => 'Test User6', 'nick' => 'user6' }
+        end
+        let(:data) do
+          {
+            'content' => {'type' => 'join', 'description' => 'tbd'},
+            'event'   => 'action',
+            'flow'    => test_flow,
+            'user'    => joining_user_id
+          }
+        end
+
+        before do
+          allow(Lita::User).to receive(:find_by_id).with(6).and_return(nil)
+          allow(fd_client).to receive(:get).with(
+            "/user/#{joining_user_id}").and_return(joining_user_fd)
+          allow(robot).to receive(:receive)
+          allow(fd_client).to receive(:get).with(
+            '/users').and_return([joining_user_fd])
+        end
+
+        it "creates the new user" do
+          expect(Lita::User).to receive(:create).with(
+            6, { 'name' => 'Test User6', 'mention_name' => 'user6' })
+          subject.handle
+        end
+      end
+
+      context "for an unsupported action message type" do
+        let(:data) do
+          {
+            'content' => {
+              'type' => 'add_rss_feed',
+              'description' => 'http://example.com/rss'
+            },
+            'event'   => 'action',
+            'flow'    => test_flow,
+            'user'    => test_user_id
+          }
+        end
+
+        it "doesn't dispatch the message to Lita" do
+          expect(robot).not_to receive(:receive)
+          subject.handle
+        end
       end
     end
   end

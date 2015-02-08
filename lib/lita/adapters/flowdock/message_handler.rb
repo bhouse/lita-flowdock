@@ -64,7 +64,7 @@ module Lita
 
           def handle_action
             log.debug("Handling action: #{data.inspect}")
-            if %w{add_people invite join}.include?(data['content']['type'])
+            if %w{add_people join}.include?(data['content']['type'])
               UsersCreator.create_users(flowdock_client.get('/users'))
             end
           end
