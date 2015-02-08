@@ -9,12 +9,7 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
   let(:organization) { 'lita-test' }
   let(:flows) { ['testing'] }
   let(:fd_client) { instance_double('Flowdock::Client') }
-  let(:users) {
-    [
-      {'id' => 1, 'name' => 'Test User1', 'nick' => 'user1'},
-      {'id' => 2, 'name' => 'Test User2', 'nick' => 'user2'}
-    ]
-  }
+  let(:users) { [ user_hash(1), user_hash(2) ] }
 
   describe "#new" do
     it "creates users" do

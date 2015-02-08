@@ -12,9 +12,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
     { 'id' => robot_id, 'name' => 'Lita', 'nick' => 'lita' }
   }
   let(:test_user_id) { 3 }
-  let(:test_fd_user) {
-    { 'id' => test_user_id, 'name' => 'Test User3', 'nick' => 'user3' }
-  }
+  let(:test_fd_user) { user_hash(3) }
   let(:test_flow) { 'testing:lita-test' }
 
   before do
@@ -37,7 +35,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
       end
       let(:message) { instance_double('Lita::Message', command!: false) }
       let(:source) { instance_double('Lita::Source', private_message?: false) }
-      let(:user) { instance_double('Lita::User', id: test_user_id) }
+      let(:user) { user_double(test_user_id) }
 
       before do
         allow(Lita::User).to receive(:find_by_id).and_return(user)
@@ -103,7 +101,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'user'    => robot_id
         }
       end
-      let(:robot_user) { instance_double('Lita::User', id: robot_id) }
+      let(:robot_user) { user_double(robot_id) }
 
       before do
         allow(Lita::User).to receive(:find_by_id).and_return(robot_user)
@@ -118,9 +116,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
 
     context "a message from an unknown user" do
       let(:new_user_id) { 4 }
-      let(:new_fd_user) {
-        { 'id' => new_user_id, 'name' => 'Test User4', 'nick' => 'user4' }
-      }
+      let(:new_fd_user) { user_hash(4) }
 
 
       let(:data) do
@@ -131,9 +127,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'user'    => new_user_id
         }
       end
-      let(:user4) { instance_double(
-        'Lita::User', id: 4, name: 'Test User4', mention_name: 'user4'
-      )}
+      let(:user4) { user_double(4) }
 
       before do
         allow(Lita::User).to receive(:find_by_id).with(
@@ -184,9 +178,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           }
         end
         let(:added_user_id) { 5 }
-        let(:added_user_fd) do
-          { 'id' => 5, 'name' => 'Test User5', 'nick' => 'user5' }
-        end
+        let(:added_user_fd) { user_hash(5) }
 
         before do
           allow(Lita::User).to receive(:find_by_id).with(5).and_return(nil)
@@ -206,9 +198,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
 
       context "for a user joining the flow" do
         let(:joining_user_id) { 6 }
-        let(:joining_user_fd) do
-          { 'id' => 6, 'name' => 'Test User6', 'nick' => 'user6' }
-        end
+        let(:joining_user_fd) { user_hash(6) }
         let(:data) do
           {
             'content' => {'type' => 'join', 'description' => 'tbd'},
