@@ -39,8 +39,9 @@ module Lita
             end
 
             source.error do |error|
-              log.error(error.inspect)
-              EM.stop
+              log.error(error)
+              robot.trigger(:disconnected)
+              log.info('Disconnected')
             end
 
             source.start
@@ -55,6 +56,7 @@ module Lita
 
         def shut_down
           source.close
+          EM.stop if EM.reactor_running?
         end
 
         private
