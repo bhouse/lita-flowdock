@@ -1,5 +1,6 @@
 require 'eventmachine'
 require 'em-eventsource'
+require 'flowdock'
 require 'lita/adapters/flowdock/message_handler'
 require 'lita/adapters/flowdock/users_creator'
 
@@ -7,18 +8,16 @@ module Lita
   module Adapters
     class Flowdock < Adapter
       class Connector
-        attr_reader :robot, :api_token, :organization, :flows, :source,
-          :flowdock_client, :robot_id
 
-        def initialize(robot, api_token, organization, flows, flowdock_client, robot_id)
+        def initialize(robot, api_token, organization, flows, flowdock_client=nil)
           @robot = robot
           @api_token = api_token
           @organization = organization
           @flows = flows
-          @flowdock_client = flowdock_client
-          @robot_id = robot_id
+          @client =
+            flowdock_client || Flowdock::Client.new(api_token: api_token)
 
-          UsersCreator.create_users flowdock_client.get('/users')
+          UsersCreator.create_users(client.get('/users'))
         end
 
         def run
@@ -29,8 +28,8 @@ module Lita
               {'Accept' => 'text/event-stream'}
             )
 
-            source.open do |open|
-              log.info("Connected to flowdock streaming API")
+            source.open do
+              log.info('Connected to flowdock streaming API')
               robot.trigger(:connected)
             end
 
@@ -48,7 +47,19 @@ module Lita
           end
         end
 
+        def send_messages(target, messages)
+          messages.each do |message|
+            client.chat_message(flow: target, content: message)
+          end
+        end
+
+        def shut_down
+          source.close
+        end
+
         private
+          attr_reader :robot, :api_token, :organization, :flows, :source,
+            :client
 
           def log
             Lita.logger
@@ -56,11 +67,15 @@ module Lita
 
           def receive_message(event)
             log.debug("Event received: #{event.inspect}")
-            MessageHandler.new(robot, robot_id, event, flowdock_client).handle
+            MessageHandler.new(robot, robot_id, event, client).handle
           end
 
           def request_flows
-            flows.map {|f| "#{organization}/#{f}" }.join(",")
+            flows.map {|f| "#{organization}/#{f}" }.join(',')
+          end
+
+          def robot_id
+            @robot_id ||= client.get('/user')['id']
           end
       end
     end
