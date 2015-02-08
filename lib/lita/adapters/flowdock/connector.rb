@@ -16,14 +16,16 @@ module Lita
           @flows = flows
           @client =
             flowdock_client || ::Flowdock::Client.new(api_token: api_token)
+          @stream_url =
+            "https://#{api_token}@stream.flowdock.com/flows?filter=#{request_flows}"
 
           UsersCreator.create_users(client.get('/users'))
         end
 
-        def run
+        def run(url=stream_url, queue=nil)
           EM.run do
             @source = EventMachine::EventSource.new(
-              "https://#{api_token}@stream.flowdock.com/flows?filter=#{request_flows}",
+              url,
               {query: 'text/event-stream'},
               {'Accept' => 'text/event-stream'}
             )
@@ -45,6 +47,7 @@ module Lita
             end
 
             source.start
+            queue << source if queue
           end
         end
 
@@ -61,7 +64,7 @@ module Lita
 
         private
           attr_reader :robot, :api_token, :organization, :flows, :source,
-            :client
+            :client, :stream_url
 
           def log
             Lita.logger

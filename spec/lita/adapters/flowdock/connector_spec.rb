@@ -1,7 +1,17 @@
 require 'spec_helper'
 
 describe Lita::Adapters::Flowdock::Connector, lita: true do
-  subject { described_class }
+  def with_eventsource(subject, queue)
+    thread = Thread.new { subject.run(url, queue) }
+    thread.abort_on_exception = true
+    yield queue.pop
+    subject.shut_down
+    thread.join
+  end
+
+    subject {
+      described_class.new(robot, api_token, organization, flows, fd_client)
+    }
 
   let(:registry) { Lita::Registry.new }
   let(:robot) { Lita::Robot.new(registry) }
@@ -10,8 +20,12 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
   let(:flows) { ['testing'] }
   let(:fd_client) { instance_double('Flowdock::Client') }
   let(:users) { [ user_hash(1), user_hash(2) ] }
+  let(:queue) { Queue.new }
+  let(:url) { "http://example.com" }
 
   describe "#new" do
+    subject { described_class }
+
     it "creates users" do
       expect(fd_client).to receive(:get).with('/users').and_return(users)
       expect(Lita::Adapters::Flowdock::UsersCreator).to receive(
@@ -22,14 +36,26 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
   end
 
   describe "#run" do
+    before do
+      allow(fd_client).to receive(:get).with('/users').and_return([])
+    end
+
+    it "starts the reactor" do
+      with_eventsource(subject, queue) do
+        expect(EM.reactor_running?).to be_truthy
+      end
+    end
+
+    it "creates the event source" do
+      with_eventsource(subject, queue) do |source|
+        expect(source).to be_an_instance_of(EventMachine::EventSource)
+      end
+    end
   end
 
   describe "#send_messages" do
     let(:target) { 'testing:lita-test' }
     let(:message) { 'foo' }
-    subject {
-      described_class.new(robot, api_token, organization, flows, fd_client)
-    }
 
     before do
       allow(fd_client).to receive(:get).with('/users').and_return(users)
