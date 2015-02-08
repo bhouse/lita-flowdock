@@ -7,9 +7,8 @@ module Lita
       namespace 'flowdock'
 
       config :api_token, type: String, required: true
-      config :bot_name, type: String, required: true
       config :organization, type: String, required: true
-      config :flows, type: [Symbol, Array], required: true
+      config :flows, type: Array, required: true
 
 
       def mention_format(name)
@@ -43,12 +42,7 @@ module Lita
       end
 
       private
-
         attr_reader :connector
-
-        def bot_name
-          config.bot_name
-        end
     end
 
     Lita.register_adapter(:flowdock, Flowdock)
