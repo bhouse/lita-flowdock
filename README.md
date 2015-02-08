@@ -1,5 +1,8 @@
 # lita-flowdock
 
+[![Build Status](https://travis-ci.org/bhouse/lita-flowdock.svg?branch=master)](https://travis-ci.org/bhouse/lita-flowdock)
+[![Coverage Status](https://coveralls.io/repos/bhouse/lita-flowdock/badge.svg?branch=master)](https://coveralls.io/r/bhouse/lita-flowdock?branch=master)
+
 ## Testing
 ```shell
 git clone https://github.com/litaio/development-environment ~/lita-dev
