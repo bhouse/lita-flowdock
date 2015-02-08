@@ -15,7 +15,7 @@ module Lita
           @organization = organization
           @flows = flows
           @client =
-            flowdock_client || Flowdock::Client.new(api_token: api_token)
+            flowdock_client || ::Flowdock::Client.new(api_token: api_token)
 
           UsersCreator.create_users(client.get('/users'))
         end
