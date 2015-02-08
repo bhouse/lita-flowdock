@@ -35,6 +35,7 @@ For quick setup, see the [Getting Started](https://github.com/bhouse/lita-flowdo
 
 ### Example
 
+#### lita_config.rb
 ```ruby
 Lita.configure do |config|
   config.robot.adapter = :flowdock
@@ -44,6 +45,17 @@ Lita.configure do |config|
   config.robot.adapters.flowdock.organization = 'mycompany'
   config.robot.adapters.flowdock.flows = ['main', 'ops']
 end
+```
+
+#### Using Chef cookbook attributes
+
+```ruby
+default['lita']['adapters'] = ['flowdock']
+default['lita']['adapter_config']['flowdock'] = {
+  'api_token'     => ENV['FLOWDOCK_API_TOKEN'],
+  'organization'  => 'mycompany',
+  'flows'         => ['main', 'ops']
+}
 ```
 
 ## License
