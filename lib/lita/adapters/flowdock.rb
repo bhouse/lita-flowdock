@@ -25,16 +25,11 @@ module Lita
         )
 
         connector.run
-      rescue Interrupt
-        shut_down
       end
 
       def shut_down
         return unless connector
         connector.shut_down
-      rescue RuntimeError
-        robot.trigger(:disconnected)
-        log.info('Disconnected')
       end
 
       def send_messages(target, messages)
