@@ -41,7 +41,7 @@ Lita.configure do |config|
   config.robot.mention_name = "!"
   config.robot.log_level = :debug
   config.robot.adapter = :flowdock
-  config.adapters.flowdock.api_key = "$FLOWDOCK_API_TOKEN"
+  config.adapters.flowdock.api_token = "$FLOWDOCK_API_TOKEN"
   config.adapters.flowdock.organization = "$ORG"
   config.adapters.flowdock.flows = ["$FLOW_NAME"]
 end
