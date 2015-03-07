@@ -1,4 +1,5 @@
 require 'lita/adapters/flowdock/users_creator'
+require 'lita/source/flowdock_source'
 
 module Lita
   module Adapters
@@ -33,13 +34,17 @@ module Lita
           end
 
           def dispatch_message(user)
-            source = Source.new(user: user, room: flow)
+            source = FlowdockSource.new(user: user, room: flow, message_id: id)
             message = Message.new(robot, body, source)
             robot.receive(message)
           end
 
           def flow
             data['flow']
+          end
+
+          def id
+            data['id']
           end
 
           def from_self?(user)

@@ -45,16 +45,29 @@ describe Lita::Adapters::Flowdock, lita: true do
   end
 
   describe "#send_messages" do
-    let(:room_source) { Lita::Source.new(room: '1234abcd') }
+    let(:id) { 8888 }
+    let(:room_source) { Lita::FlowdockSource.new(room: '1234abcd', message_id: id) }
     let(:user) { Lita::User.new('987654') }
     let(:user_source) { Lita::Source.new(user: user) }
 
     it "sends messages to flows" do
-      expect(connector).to receive(:send_messages).with(room_source.room, ['foo'])
+      expect(connector).to receive(:send_messages).with(room_source.room, ['foo'], room_source.message_id)
 
       subject.run
 
       subject.send_messages(room_source, ['foo'])
+    end
+
+    context "with thread_responses disabled" do
+      before do
+        registry.config.adapters.flowdock.thread_responses = :disabled
+      end
+
+      it "sends messages to flow without the original message id" do
+        expect(connector).to receive(:send_messages).with(room_source.room, ['foo'])
+        subject.run
+        subject.send_messages(room_source, ['foo'])
+      end
     end
   end
 

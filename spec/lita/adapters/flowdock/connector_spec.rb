@@ -56,14 +56,15 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
   describe "#send_messages" do
     let(:target) { 'testing:lita-test' }
     let(:message) { 'foo' }
+    let(:message_id) { 1234 }
 
     before do
       allow(fd_client).to receive(:get).with('/users').and_return(users)
     end
 
     it "sends messages" do
-      expect(fd_client).to receive(:chat_message).with(flow: target, content: message)
-      subject.send_messages(target, [message])
+      expect(fd_client).to receive(:chat_message).with(flow: target, content: message, message: message_id)
+      subject.send_messages(target, [message], message_id)
     end
   end
 end

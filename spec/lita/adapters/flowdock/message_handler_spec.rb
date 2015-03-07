@@ -25,23 +25,26 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
 
   describe "#handle" do
     context "a normal message" do
+      let(:id) { 2345 }
       let(:data) do
         {
           'content' => 'Hello World!',
           'event'   => 'message',
           'flow'    => test_flow,
+          'id'      => id,
           'user'    => test_user_id
         }
       end
       let(:message) { instance_double('Lita::Message', command!: false) }
-      let(:source) { instance_double('Lita::Source', private_message?: false) }
+      let(:source) { instance_double('Lita::FlowdockSource', private_message?: false, message_id: id) }
       let(:user) { user_double(test_user_id) }
 
       before do
         allow(Lita::User).to receive(:find_by_id).and_return(user)
-        allow(Lita::Source).to receive(:new).with(
+        allow(Lita::FlowdockSource).to receive(:new).with(
           user: user,
-          room: test_flow
+          room: test_flow,
+          message_id: id
         ).and_return(source)
         allow(Lita::Message).to receive(:new).with(
           robot, 'Hello World!', source).and_return(message)
@@ -60,6 +63,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
             'event'   => 'message',
             'flow'    => test_flow,
             'user'    => test_user_id,
+            'id'      => id
           }
         end
 

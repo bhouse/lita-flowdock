@@ -9,6 +9,7 @@ module Lita
       config :api_token, type: String, required: true
       config :organization, type: String, required: true
       config :flows, type: Array, required: true
+      config :thread_responses, type: Symbol, required: false, default: :enabled
 
 
       def mention_format(name)
@@ -33,7 +34,11 @@ module Lita
       end
 
       def send_messages(target, messages)
-        connector.send_messages(target.room, messages)
+        if config.thread_responses.eql?(:enabled)
+          connector.send_messages(target.room, messages, target.message_id)
+        else
+          connector.send_messages(target.room, messages)
+        end
       end
 
       private
