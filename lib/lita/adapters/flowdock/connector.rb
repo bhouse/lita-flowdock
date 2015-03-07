@@ -51,9 +51,13 @@ module Lita
           end
         end
 
-        def send_messages(target, messages)
+        def send_messages(target, messages, message_id = nil)
           messages.each do |message|
-            client.chat_message(flow: target, content: message)
+            client.chat_message(
+              flow: target,
+              content: message,
+              message: message_id
+            )
           end
         end
 

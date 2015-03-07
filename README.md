@@ -33,6 +33,12 @@ For quick setup, see the [Getting Started](https://github.com/bhouse/lita-flowdo
 * `organization` (String) - The organization for the flowdock account
 * `flows` (Array) - Array of flows the bot should connect to, i.e. `main`
 
+### Optional Attributes
+* `thread_responses` (Symbol) - Respond to the original message in a Flowdock
+  thread
+ * default: `:enabled`
+ * other values: `:disabled`
+
 ### Example
 
 #### lita_config.rb
