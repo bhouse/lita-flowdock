@@ -171,6 +171,44 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
       end
     end
 
+    context "receives a comment message" do
+      let(:id) { 4321 }
+      let(:parent_id) { 123456 }
+      let(:data) do
+        {
+          'content' => {
+            'title' => 'Thread title',
+            'text' => 'Lita: help'
+          },
+          'event'   => 'comment',
+          'flow'    => test_flow,
+          'id'      => id,
+          'tags'    => ["influx:#{parent_id}"],
+          'user'    => test_user_id
+        }
+      end
+      let(:message) { instance_double('Lita::Message', command!: true) }
+      let(:source) { instance_double('Lita::FlowdockSource', private_message?: false, message_id: parent_id) }
+      let(:user) { user_double(test_user_id) }
+
+      before do
+        allow(Lita::User).to receive(:find_by_id).and_return(user)
+        allow(Lita::FlowdockSource).to receive(:new).with(
+          user: user,
+          room: test_flow,
+          message_id: parent_id
+        ).and_return(source)
+        allow(Lita::Message).to receive(:new).with(
+          robot, 'Lita: help', source).and_return(message)
+        allow(robot).to receive(:receive).with(message)
+      end
+
+      it "dispatches the message to lita" do
+        expect(robot).to receive(:receive).with(message)
+        subject.handle
+      end
+    end
+
     context "receives an action message" do
       context "for adding a user to the flow" do
         let(:data) do
