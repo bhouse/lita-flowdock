@@ -15,6 +15,8 @@ module Lita
 
         def handle
           case type
+          when "comment"
+            handle_message
           when "message"
             handle_message
           when "activity.user"
@@ -30,11 +32,29 @@ module Lita
           attr_reader :robot, :robot_id, :data, :type, :flowdock_client
 
           def body
-            data['content'] || ""
+            content = data['content'] || ""
+            return content.is_a?(Hash) ? content['text'] : content
+          end
+
+          def tags
+            data['tags']
+          end
+
+          def parent_id
+            influx_tag = tags.select { |t| t =~ /influx:(\d+)/ }.first
+            influx_tag.split(':')[-1].to_i
+          end
+
+          def message_id
+            type == 'comment' ? parent_id : id
           end
 
           def dispatch_message(user)
-            source = FlowdockSource.new(user: user, room: flow, message_id: id)
+            source = FlowdockSource.new(
+              user: user,
+              room: flow,
+              message_id: message_id
+            )
             message = Message.new(robot, body, source)
             robot.receive(message)
           end
