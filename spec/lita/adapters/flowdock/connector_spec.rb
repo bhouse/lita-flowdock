@@ -14,6 +14,7 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
     }
 
   let(:registry) { Lita::Registry.new }
+  let(:source) { instance_double('Lita::FlowdockSource', private_message?: false, message_id: message_id) }
   let(:robot) { Lita::Robot.new(registry) }
   let(:api_token) { 'a8f828cfe7efc65b53b3de06761e83e9' }
   let(:organization) { 'lita-test' }
@@ -54,17 +55,19 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
   end
 
   describe "#send_messages" do
-    let(:target) { 'testing:lita-test' }
+    let(:target) { source }
     let(:message) { 'foo' }
     let(:message_id) { 1234 }
 
     before do
       allow(fd_client).to receive(:get).with('/users').and_return(users)
+      allow(source).to receive(:room).and_return('testing:lita-test')
+      allow(source).to receive(:private_message).and_return(false)
     end
 
     it "sends messages" do
-      expect(fd_client).to receive(:chat_message).with(flow: target, content: message, message: message_id)
-      subject.send_messages(target, [message], message_id)
+      expect(fd_client).to receive(:chat_message).with(flow: target.room, message_id: message_id, content: message)
+      subject.send_messages(target, [message], true)
     end
   end
 end

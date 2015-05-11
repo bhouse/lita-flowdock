@@ -9,13 +9,14 @@ module Lita
     class Flowdock < Adapter
       class Connector
 
-        def initialize(robot, api_token, organization, flows, flowdock_client=nil)
+        def initialize(robot, api_token, organization, flows, flowdock_client=nil, query_params=Hash.new)
           @robot = robot
           @api_token = api_token
           @organization = organization
           @flows = flows
           @client =
             flowdock_client || ::Flowdock::Client.new(api_token: api_token)
+          @query_params = query_params
           @stream_url =
             "https://#{api_token}@stream.flowdock.com/flows?filter=#{request_flows}"
 
@@ -26,7 +27,7 @@ module Lita
           EM.run do
             @source = EventMachine::EventSource.new(
               url,
-              {query: 'text/event-stream'},
+              @query_params,
               {'Accept' => 'text/event-stream'}
             )
 
@@ -51,13 +52,20 @@ module Lita
           end
         end
 
-        def send_messages(target, messages, message_id = nil)
+        def send_messages(target, messages, thread)
+          params = {
+            flow: target.room
+          }
+          params.merge!(message_id: target.message_id) if thread
           messages.each do |message|
-            client.chat_message(
-              flow: target,
-              content: message,
-              message: message_id
-            )
+            params.merge!(content: message)
+            if target.private_message
+              params.merge!(user_id: target.user.id)
+              client.private_message(params)
+            else
+              puts params.inspect
+              client.chat_message(params)
+            end
           end
         end
 

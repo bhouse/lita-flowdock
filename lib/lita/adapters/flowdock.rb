@@ -10,6 +10,8 @@ module Lita
       config :organization, type: String, required: true
       config :flows, type: Array, required: true
       config :thread_responses, type: Symbol, required: false, default: :enabled
+      config :private_messages, type: Symbol, required: false, default: :enabled
+      config :active_user, type: Symbol, required: false, default: :enabled
 
 
       def mention_format(name)
@@ -22,7 +24,9 @@ module Lita
           robot,
           config.api_token,
           config.organization,
-          config.flows
+          config.flows,
+          nil,
+          query_params
         )
 
         connector.run
@@ -34,15 +38,30 @@ module Lita
       end
 
       def send_messages(target, messages)
-        if config.thread_responses.eql?(:enabled)
-          connector.send_messages(target.room, messages, target.message_id)
-        else
-          connector.send_messages(target.room, messages)
-        end
+        connector.send_messages(
+          target,
+          messages,
+          config.thread_responses.eql?(:enabled)
+        )
       end
 
       private
         attr_reader :connector
+
+        def query_params
+          {
+            user: respond_to_private_messages?,
+            active: show_user_as_active?
+          }
+        end
+
+        def respond_to_private_messages?
+          [:enabled, :help].include?(config.private_messages) ? 1 : 0
+        end
+
+        def show_user_as_active?
+          config.active_user.eql?(:enabled) ? 'true' : 'idle'
+        end
     end
 
     Lita.register_adapter(:flowdock, Flowdock)
