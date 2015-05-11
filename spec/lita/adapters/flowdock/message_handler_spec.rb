@@ -32,10 +32,11 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'event'   => 'message',
           'flow'    => test_flow,
           'id'      => id,
+          'tags'    => [],
           'user'    => test_user_id
         }
       end
-      let(:message) { instance_double('Lita::Message', command!: false) }
+      let(:message) { instance_double('Lita::FlowdockMessage', command!: false) }
       let(:source) { instance_double('Lita::FlowdockSource', private_message?: false, message_id: id) }
       let(:user) { user_double(test_user_id) }
 
@@ -46,8 +47,8 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           room: test_flow,
           message_id: id
         ).and_return(source)
-        allow(Lita::Message).to receive(:new).with(
-          robot, 'Hello World!', source).and_return(message)
+        allow(Lita::FlowdockMessage).to receive(:new).with(
+          robot, 'Hello World!', source, []).and_return(message)
         allow(robot).to receive(:receive).with(message)
       end
 
@@ -63,15 +64,17 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
             'event'   => 'message',
             'flow'    => test_flow,
             'user'    => test_user_id,
+            'tags'    => [],
             'id'      => id
           }
         end
 
         it "dispatches an empty message to Lita" do
-          expect(Lita::Message).to receive(:new).with(
+          expect(Lita::FlowdockMessage).to receive(:new).with(
             robot,
             "",
-            source
+            source,
+            []
           ).and_return(message)
 
           subject.handle
@@ -85,6 +88,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'content' => 'this type is not supported',
           'event'   => 'unsupported',
           'flow'    => test_flow,
+          'tags'    => [],
           'user'    => test_user_id
         }
       end
@@ -102,6 +106,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'content' => 'reply from lita',
           'event'   => 'message',
           'flow'    => test_flow,
+          'tags'    => [],
           'user'    => robot_id
         }
       end
@@ -128,6 +133,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'content' => "hi i'm new here",
           'event'   => 'message',
           'flow'    => test_flow,
+          'tags'    => [],
           'user'    => new_user_id
         }
       end
@@ -160,6 +166,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'content' => { 'last_activity' => 1317715364447 },
           'event'   => 'activity.user',
           'flow'    => test_flow,
+          'tags'    => [],
           'user'    => test_user_id
         }
       end
@@ -174,6 +181,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
     context "receives a comment message" do
       let(:id) { 4321 }
       let(:parent_id) { 123456 }
+      let(:tags) { ["influx:#{parent_id}"] }
       let(:data) do
         {
           'content' => {
@@ -183,7 +191,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'event'   => 'comment',
           'flow'    => test_flow,
           'id'      => id,
-          'tags'    => ["influx:#{parent_id}"],
+          'tags'    => tags,
           'user'    => test_user_id
         }
       end
@@ -198,8 +206,8 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           room: test_flow,
           message_id: parent_id
         ).and_return(source)
-        allow(Lita::Message).to receive(:new).with(
-          robot, 'Lita: help', source).and_return(message)
+        allow(Lita::FlowdockMessage).to receive(:new).with(
+          robot, 'Lita: help', source, tags).and_return(message)
         allow(robot).to receive(:receive).with(message)
       end
 
@@ -216,6 +224,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
             'content' => {'type' => 'add_people', 'description' => 'user5'},
             'event' => 'action',
             'flow'  => test_flow,
+            'tags'  => [],
             'user'  => test_user_id
           }
         end
@@ -246,6 +255,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
             'content' => {'type' => 'join', 'description' => 'tbd'},
             'event'   => 'action',
             'flow'    => test_flow,
+            'tags'    => [],
             'user'    => joining_user_id
           }
         end
@@ -275,6 +285,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
             },
             'event'   => 'action',
             'flow'    => test_flow,
+            'tags'    => [],
             'user'    => test_user_id
           }
         end
