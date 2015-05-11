@@ -55,10 +55,6 @@ module Lita
             data['flow']
           end
 
-          def id
-            data['id']
-          end
-
           def from_self?(user)
             user.id.to_i == robot_id
           end
