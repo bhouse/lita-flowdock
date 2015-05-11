@@ -30,19 +30,20 @@ describe Lita::FlowdockMessage, lita: true do
   end
 
   context "a message in a thread has a tag" do
-    let(:tags) { ['influx:1234', 'down'] }
+    let(:tags) { ['down'] }
     let(:body) { 'the system is #down' }
     let(:data) do
       {
-        'content' => {
-          'title' => 'Thread title',
-          'text'  => body
+        'content'         => {
+          'title'         => 'Thread title',
+          'text'          => body
         },
-        'event'   => 'comment',
-        'flow'    => test_flow,
-        'id'      => 1234,
-        'tags'    => tags,
-        'user'    => 3
+        'event'           => 'comment',
+        'flow'            => test_flow,
+        'id'              => 2345,
+        'initial_message' => 1234,
+        'tags'            => tags,
+        'user'            => 3
       }
     end
 
@@ -63,12 +64,13 @@ describe Lita::FlowdockMessage, lita: true do
     let(:body) { 'Hello #world' }
     let(:data) do
       {
-        'content' => body,
-        'event'   => 'message',
-        'flow'    => test_flow,
-        'id'      => 1234,
-        'tags'    => tags,
-        'user'    => 3
+        'content'         => body,
+        'event'           => 'message',
+        'flow'            => test_flow,
+        'id'              => 1234,
+        'initial_message' => 1234,
+        'tags'            => tags,
+        'user'            => 3
       }
     end
 

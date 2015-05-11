@@ -28,12 +28,13 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
       let(:id) { 2345 }
       let(:data) do
         {
-          'content' => 'Hello World!',
-          'event'   => 'message',
-          'flow'    => test_flow,
-          'id'      => id,
-          'tags'    => [],
-          'user'    => test_user_id
+          'content'         => 'Hello World!',
+          'event'           => 'message',
+          'flow'            => test_flow,
+          'id'              => id,
+          'initial_message' => id,
+          'tags'            => [],
+          'user'            => test_user_id
         }
       end
       let(:message) { instance_double('Lita::FlowdockMessage', command!: false) }
@@ -61,11 +62,12 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
       context "when the message is nil" do
         let(:data) do
           {
-            'event'   => 'message',
-            'flow'    => test_flow,
-            'user'    => test_user_id,
-            'tags'    => [],
-            'id'      => id
+            'event'           => 'message',
+            'flow'            => test_flow,
+            'user'            => test_user_id,
+            'tags'            => [],
+            'id'              => id,
+            'initial_message' => id
           }
         end
 
@@ -181,18 +183,19 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
     context "receives a comment message" do
       let(:id) { 4321 }
       let(:parent_id) { 123456 }
-      let(:tags) { ["influx:#{parent_id}"] }
+      let(:tags) { [] }
       let(:data) do
         {
           'content' => {
-            'title' => 'Thread title',
-            'text' => 'Lita: help'
+            'title'         => 'Thread title',
+            'text'          => 'Lita: help'
           },
-          'event'   => 'comment',
-          'flow'    => test_flow,
-          'id'      => id,
-          'tags'    => tags,
-          'user'    => test_user_id
+          'event'           => 'comment',
+          'flow'            => test_flow,
+          'id'              => id,
+          'initial_message' => parent_id,
+          'tags'            => tags,
+          'user'            => test_user_id
         }
       end
       let(:message) { instance_double('Lita::Message', command!: true) }

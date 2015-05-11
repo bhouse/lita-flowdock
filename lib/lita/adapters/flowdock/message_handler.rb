@@ -41,20 +41,11 @@ module Lita
             data['tags']
           end
 
-          def parent_id
-            influx_tag = tags.select { |t| t =~ /influx:(\d+)/ }.first
-            influx_tag.split(':')[-1].to_i
-          end
-
-          def message_id
-            type == 'comment' ? parent_id : id
-          end
-
           def dispatch_message(user)
             source = FlowdockSource.new(
               user: user,
               room: flow,
-              message_id: message_id
+              message_id: data['initial_message']
             )
             message = FlowdockMessage.new(robot, body, source, tags)
             robot.receive(message)
