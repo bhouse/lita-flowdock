@@ -1,5 +1,6 @@
 require 'lita/adapters/flowdock/users_creator'
 require 'lita/source/flowdock_source'
+require 'lita/message/flowdock_message'
 
 module Lita
   module Adapters
@@ -55,7 +56,7 @@ module Lita
               room: flow,
               message_id: message_id
             )
-            message = Message.new(robot, body, source)
+            message = FlowdockMessage.new(robot, body, source, tags)
             robot.receive(message)
           end
 
