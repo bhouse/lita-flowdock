@@ -21,7 +21,9 @@ describe Lita::Adapters::Flowdock, lita: true do
       robot,
       api_token,
       organization,
-      flows
+      flows,
+      nil,
+      {:user => 1, :active => 'true'}
     ).and_return(connector)
     allow(connector).to receive(:run)
   end
@@ -51,7 +53,7 @@ describe Lita::Adapters::Flowdock, lita: true do
     let(:user_source) { Lita::Source.new(user: user) }
 
     it "sends messages to flows" do
-      expect(connector).to receive(:send_messages).with(room_source.room, ['foo'], room_source.message_id)
+      expect(connector).to receive(:send_messages).with(room_source, ['foo'], true)
 
       subject.run
 
@@ -64,7 +66,17 @@ describe Lita::Adapters::Flowdock, lita: true do
       end
 
       it "sends messages to flow without the original message id" do
-        expect(connector).to receive(:send_messages).with(room_source.room, ['foo'])
+        expect(connector).to receive(:send_messages).with(room_source, ['foo'], false)
+        subject.run
+        subject.send_messages(room_source, ['foo'])
+      end
+    end
+
+    context "from a private message source" do
+      let(:room_source) { Lita::FlowdockSource.new(room: '1234abcd', message_id: id, private_message: true) }
+
+      it "responds via a private message to flowdock" do
+        expect(connector).to receive(:send_messages).with(room_source, ['foo'], false)
         subject.run
         subject.send_messages(room_source, ['foo'])
       end
