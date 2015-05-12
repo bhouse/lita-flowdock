@@ -32,7 +32,9 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'event'           => 'message',
           'flow'            => test_flow,
           'id'              => id,
-          'initial_message' => id,
+          'thread'          => {
+            'initial_message' => id
+          },
           'tags'            => [],
           'user'            => test_user_id
         }
@@ -46,6 +48,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
         allow(Lita::FlowdockSource).to receive(:new).with(
           user: user,
           room: test_flow,
+          private_message: false,
           message_id: id
         ).and_return(source)
         allow(Lita::FlowdockMessage).to receive(:new).with(
@@ -67,7 +70,9 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
             'user'            => test_user_id,
             'tags'            => [],
             'id'              => id,
-            'initial_message' => id
+            'thread'          => {
+              'initial_message' => id
+            }
           }
         end
 
@@ -136,6 +141,9 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'event'   => 'message',
           'flow'    => test_flow,
           'tags'    => [],
+          'thread'  => {
+            'initial_message' => 5678
+          },
           'user'    => new_user_id
         }
       end
@@ -193,7 +201,9 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           'event'           => 'comment',
           'flow'            => test_flow,
           'id'              => id,
-          'initial_message' => parent_id,
+          'thread'          => {
+            'initial_message' => parent_id
+          },
           'tags'            => tags,
           'user'            => test_user_id
         }
@@ -207,6 +217,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
         allow(Lita::FlowdockSource).to receive(:new).with(
           user: user,
           room: test_flow,
+          private_message: false,
           message_id: parent_id
         ).and_return(source)
         allow(Lita::FlowdockMessage).to receive(:new).with(

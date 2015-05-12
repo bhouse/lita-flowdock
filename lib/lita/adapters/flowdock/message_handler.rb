@@ -45,7 +45,8 @@ module Lita
             source = FlowdockSource.new(
               user: user,
               room: flow,
-              message_id: data['initial_message']
+              private_message: private_message?,
+              message_id: private_message? ? data['id'] : data['thread']['initial_message']
             )
             message = FlowdockMessage.new(robot, body, source, tags)
             robot.receive(message)
@@ -89,6 +90,10 @@ module Lita
           def create_user(id)
             user = flowdock_client.get("/user/#{id}")
             UsersCreator.create_user(user)
+          end
+
+          def private_message?
+            data.has_key?('to')
           end
       end
     end

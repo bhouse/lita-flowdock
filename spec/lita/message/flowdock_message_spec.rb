@@ -24,6 +24,7 @@ describe Lita::FlowdockMessage, lita: true do
     allow(Lita::FlowdockSource).to receive(:new).with(
       user: user,
       room: test_flow,
+      private_message: false,
       message_id: 1234
     ).and_return(source)
     allow(Lita::User).to receive(:find_by_id).and_return(user)
@@ -41,7 +42,9 @@ describe Lita::FlowdockMessage, lita: true do
         'event'           => 'comment',
         'flow'            => test_flow,
         'id'              => 2345,
-        'initial_message' => 1234,
+        'thread'          => {
+          'initial_message' => 1234
+        },
         'tags'            => tags,
         'user'            => 3
       }
@@ -68,7 +71,9 @@ describe Lita::FlowdockMessage, lita: true do
         'event'           => 'message',
         'flow'            => test_flow,
         'id'              => 1234,
-        'initial_message' => 1234,
+        'thread'          => {
+          'initial_message' => 1234
+        },
         'tags'            => tags,
         'user'            => 3
       }
