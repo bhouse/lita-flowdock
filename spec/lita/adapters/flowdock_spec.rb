@@ -26,6 +26,7 @@ describe Lita::Adapters::Flowdock, lita: true do
       {:user => 1, :active => 'true'}
     ).and_return(connector)
     allow(connector).to receive(:run)
+    allow(Lita.redis).to receive(:get).with("flows/1234abcd").and_return("dcba4321")
   end
 
   it "registers with Lita" do
