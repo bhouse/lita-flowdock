@@ -27,3 +27,7 @@ end
 def user_hash(id)
   { 'id' => id, 'name' => "Test User#{id}", "nick" => "user#{id}" }
 end
+
+def flow_hash(id)
+  { 'id' => id, 'name' => "Test Flow#{id}", 'parameterized_name' => "test_flow#{id}"}
+end

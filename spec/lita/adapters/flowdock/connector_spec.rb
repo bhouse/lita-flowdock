@@ -21,6 +21,7 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
   let(:flows) { ['testing'] }
   let(:fd_client) { instance_double('Flowdock::Client') }
   let(:users) { [ user_hash(1), user_hash(2) ] }
+  let(:flows) { [ flow_hash(1) ] }
   let(:queue) { Queue.new }
   let(:url) { "http://example.com" }
 
@@ -29,9 +30,17 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
 
     it "creates users" do
       expect(fd_client).to receive(:get).with('/users').and_return(users)
+      allow(fd_client).to receive(:get).with('/flows').and_return([])
       expect(Lita::Adapters::Flowdock::UsersCreator).to receive(
         :create_users
       ).with(users)
+      subject.new(robot, api_token, organization, flows, fd_client)
+    end
+
+    it "stores flows" do
+      allow(fd_client).to receive(:get).with('/users').and_return([])
+      allow(fd_client).to receive(:get).with("/flows").and_return(flows)
+      expect(Lita.redis).to receive(:set).with("flows/#{flows[0]['parameterized_name']}", flows[0]['id'])
       subject.new(robot, api_token, organization, flows, fd_client)
     end
   end
@@ -39,6 +48,7 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
   describe "#run" do
     before do
       allow(fd_client).to receive(:get).with('/users').and_return([])
+      allow(fd_client).to receive(:get).with('/flows').and_return([])
     end
 
     it "starts the reactor" do
@@ -61,6 +71,7 @@ describe Lita::Adapters::Flowdock::Connector, lita: true do
 
     before do
       allow(fd_client).to receive(:get).with('/users').and_return(users)
+      allow(fd_client).to receive(:get).with('/flows').and_return(flows)
       allow(source).to receive(:room).and_return('testing:lita-test')
       allow(source).to receive(:private_message).and_return(false)
     end
