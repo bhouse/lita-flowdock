@@ -9,7 +9,14 @@ describe Lita::FlowdockSource do
   describe "with a room" do
     it "looks up rooms" do
       expect(Lita.redis).to receive(:get).with("flows/#{room}").and_return(room_id)
-      subject
+      expect(subject.room).to eql(room_id)
+    end
+
+    describe "if the room doesn't exist" do
+      it "defaults to the passed in room" do
+        expect(Lita.redis).to receive(:get).with("flows/#{room}").and_return(nil)
+        expect(subject.room).to eql(room)
+      end
     end
   end
 
@@ -18,7 +25,8 @@ describe Lita::FlowdockSource do
 
     it "skips the room lookup if no room is given" do
       expect(Lita.redis).not_to receive(:get).with("flows/#{room}")
-      subject
+      expect(subject.room).to be_nil
+      expect(subject.user).to eql("Bob")
     end
   end
 
