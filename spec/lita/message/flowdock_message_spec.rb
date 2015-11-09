@@ -55,7 +55,42 @@ describe Lita::FlowdockMessage, lita: true do
         robot,
         body,
         source,
-        tags
+        tags,
+        nil
+      )
+
+      message_handler.handle
+    end
+  end
+
+  context "a message in a thread" do
+    let(:tags) { ['down'] }
+    let(:body) { 'the system is #down' }
+    let(:data) do
+      {
+        'content'         => {
+          'title'         => 'Thread title',
+          'text'          => body
+        },
+        'event'           => 'comment',
+        'flow'            => test_flow,
+        'id'              => 2345,
+        'thread_id'     => 'deadbeef',
+        'thread'          => {
+          'initial_message' => 1234
+        },
+        'tags'            => tags,
+        'user'            => 3
+      }
+    end
+
+    it 'stores the message_id on the flowdock_message' do
+      expect(Lita::FlowdockMessage).to receive(:new).with(
+        robot,
+        body,
+        source,
+        tags,
+        'deadbeef'
       )
 
       message_handler.handle
@@ -84,7 +119,8 @@ describe Lita::FlowdockMessage, lita: true do
         robot,
         body,
         source,
-        tags
+        tags,
+        nil
       )
 
       message_handler.handle

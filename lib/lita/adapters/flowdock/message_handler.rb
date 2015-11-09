@@ -41,6 +41,10 @@ module Lita
             data['tags']
           end
 
+          def thread_id
+            data['thread_id']
+          end
+
           def dispatch_message(user)
             source = FlowdockSource.new(
               user: user,
@@ -48,7 +52,7 @@ module Lita
               private_message: private_message?,
               message_id: private_message? ? data['id'] : data['thread']['initial_message']
             )
-            message = FlowdockMessage.new(robot, body, source, tags)
+            message = FlowdockMessage.new(robot, body, source, tags, thread_id)
             robot.receive(message)
           end
 
