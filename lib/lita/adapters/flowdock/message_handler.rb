@@ -24,6 +24,8 @@ module Lita
             handle_user_activity
           when "action"
             handle_action
+          when "tag-change"
+            handle_tag_change
           else
             handle_unknown
           end
@@ -85,6 +87,10 @@ module Lita
             if %w{add_people join}.include?(data['content']['type'])
               UsersCreator.create_users(flowdock_client.get('/users'))
             end
+          end
+
+          def handle_tag_change
+            robot.trigger(:tag_change, added: data['content']['add'], removed: data['content']['remove'], message: data['content']['message'])
           end
 
           def handle_unknown
