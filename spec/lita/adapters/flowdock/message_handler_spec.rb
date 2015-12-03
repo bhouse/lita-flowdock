@@ -90,6 +90,28 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
       end
     end
 
+    context "a tag-change event" do
+      let(:data) do
+        {
+          'content' => {
+            'add'   => ['foo'],
+            'remove' => ['bar'],
+            'message' => ['I have #foo']
+          },
+          'event'   => 'tag-change',
+          'flow'    => test_flow,
+          'tags'    => [],
+          'user'    => test_user_id
+        }
+      end
+
+      it 'triggers tag-change trigger' do
+        expect(robot).to receive(:trigger).with(:tag_change, added: ['foo'], removed: ['bar'], message: ['I have #foo'])
+
+        subject.handle
+      end
+    end
+
     context "a message with an unsupported type" do
       let(:data) do
         {
