@@ -30,8 +30,7 @@ describe Lita::FlowdockMessage, lita: true do
     allow(Lita::User).to receive(:find_by_id).and_return(user)
   end
 
-  context "a message in a thread has a tag" do
-    let(:tags) { ['down'] }
+  context "a message" do
     let(:body) { 'the system is #down' }
     let(:data) do
       {
@@ -45,82 +44,17 @@ describe Lita::FlowdockMessage, lita: true do
         'thread'          => {
           'initial_message' => 1234
         },
-        'tags'            => tags,
+        'tags'            => ['down'],
         'user'            => 3
       }
     end
 
-    it 'creates a message with tags' do
+    it 'creates a message with data' do
       expect(Lita::FlowdockMessage).to receive(:new).with(
         robot,
         body,
         source,
-        tags,
-        nil
-      )
-
-      message_handler.handle
-    end
-  end
-
-  context "a message in a thread" do
-    let(:tags) { ['down'] }
-    let(:body) { 'the system is #down' }
-    let(:data) do
-      {
-        'content'         => {
-          'title'         => 'Thread title',
-          'text'          => body
-        },
-        'event'           => 'comment',
-        'flow'            => test_flow,
-        'id'              => 2345,
-        'thread_id'     => 'deadbeef',
-        'thread'          => {
-          'initial_message' => 1234
-        },
-        'tags'            => tags,
-        'user'            => 3
-      }
-    end
-
-    it 'stores the message_id on the flowdock_message' do
-      expect(Lita::FlowdockMessage).to receive(:new).with(
-        robot,
-        body,
-        source,
-        tags,
-        'deadbeef'
-      )
-
-      message_handler.handle
-    end
-  end
-
-  context 'a regular message with a tag' do
-    let(:tags) { ['world'] }
-    let(:body) { 'Hello #world' }
-    let(:data) do
-      {
-        'content'         => body,
-        'event'           => 'message',
-        'flow'            => test_flow,
-        'id'              => 1234,
-        'thread'          => {
-          'initial_message' => 1234
-        },
-        'tags'            => tags,
-        'user'            => 3
-      }
-    end
-
-    it 'creates a message with tags' do
-      expect(Lita::FlowdockMessage).to receive(:new).with(
-        robot,
-        body,
-        source,
-        tags,
-        nil
+        data
       )
 
       message_handler.handle

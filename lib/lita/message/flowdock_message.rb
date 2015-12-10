@@ -1,10 +1,23 @@
 module Lita
   class FlowdockMessage < Message
-    attr_reader :tags, :thread_id
-    def initialize(robot, body, source, tags, thread_id)
-      @tags = tags
-      @thread_id = thread_id
+
+    attr_reader :data
+
+    def initialize(robot, body, source, data)
+      @data = data
       super(robot, body, source)
+    end
+
+    def tags
+      @data['tags']
+    end
+
+    def thread_id
+      @data['thread_id']
+    end
+
+    def new_thread?
+      @data['id'] == @data['thread']['initial_message']
     end
   end
 end
