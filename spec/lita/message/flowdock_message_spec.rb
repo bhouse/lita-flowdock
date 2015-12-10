@@ -30,100 +30,62 @@ describe Lita::FlowdockMessage, lita: true do
     allow(Lita::User).to receive(:find_by_id).and_return(user)
   end
 
-  context "a message in a thread has a tag" do
-    let(:tags) { ['down'] }
+  context "a message" do
     let(:body) { 'the system is #down' }
+    let(:initial_message){ 1234 }
     let(:data) do
       {
         'content'         => {
           'title'         => 'Thread title',
           'text'          => body
         },
+        'thread_id'       => 'a385473',
         'event'           => 'comment',
         'flow'            => test_flow,
         'id'              => 2345,
         'thread'          => {
-          'initial_message' => 1234
+          'initial_message' => initial_message
         },
-        'tags'            => tags,
+        'tags'            => ['down'],
         'user'            => 3
       }
     end
 
-    it 'creates a message with tags' do
+    it 'creates a message with data' do
       expect(Lita::FlowdockMessage).to receive(:new).with(
         robot,
         body,
         source,
-        tags,
-        nil
+        data
       )
 
       message_handler.handle
     end
-  end
 
-  context "a message in a thread" do
-    let(:tags) { ['down'] }
-    let(:body) { 'the system is #down' }
-    let(:data) do
-      {
-        'content'         => {
-          'title'         => 'Thread title',
-          'text'          => body
-        },
-        'event'           => 'comment',
-        'flow'            => test_flow,
-        'id'              => 2345,
-        'thread_id'     => 'deadbeef',
-        'thread'          => {
-          'initial_message' => 1234
-        },
-        'tags'            => tags,
-        'user'            => 3
-      }
-    end
+    context 'instance methods' do
+      subject{ Lita::FlowdockMessage.new( robot, body, source, data) }
+      it 'has #tags' do
+        expect(subject.tags).to eq(['down'])
+      end
 
-    it 'stores the message_id on the flowdock_message' do
-      expect(Lita::FlowdockMessage).to receive(:new).with(
-        robot,
-        body,
-        source,
-        tags,
-        'deadbeef'
-      )
+      it 'has #thread_id' do
+        expect(subject.thread_id).to eq('a385473')
+      end
 
-      message_handler.handle
-    end
-  end
+      context 'new_thread?' do
+        context 'non new-thread' do
+          it 'is false' do
+            expect(subject.new_thread?).to be false
+          end
+        end
 
-  context 'a regular message with a tag' do
-    let(:tags) { ['world'] }
-    let(:body) { 'Hello #world' }
-    let(:data) do
-      {
-        'content'         => body,
-        'event'           => 'message',
-        'flow'            => test_flow,
-        'id'              => 1234,
-        'thread'          => {
-          'initial_message' => 1234
-        },
-        'tags'            => tags,
-        'user'            => 3
-      }
-    end
-
-    it 'creates a message with tags' do
-      expect(Lita::FlowdockMessage).to receive(:new).with(
-        robot,
-        body,
-        source,
-        tags,
-        nil
-      )
-
-      message_handler.handle
+        context 'a new thread' do
+          let(:initial_message){ 2345 }
+          it 'is true' do
+            expect(subject.new_thread?).to be true
+          end
+        end
+      end
     end
   end
 end

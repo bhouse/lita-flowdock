@@ -52,7 +52,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           message_id: id
         ).and_return(source)
         allow(Lita::FlowdockMessage).to receive(:new).with(
-          robot, 'Hello World!', source, [], nil).and_return(message)
+          robot, 'Hello World!', source, data).and_return(message)
         allow(robot).to receive(:receive).with(message)
       end
 
@@ -81,8 +81,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
             robot,
             "",
             source,
-            [],
-            nil
+            data
           ).and_return(message)
 
           subject.handle
@@ -244,7 +243,7 @@ describe Lita::Adapters::Flowdock::MessageHandler, lita: true do
           message_id: parent_id
         ).and_return(source)
         allow(Lita::FlowdockMessage).to receive(:new).with(
-          robot, 'Lita: help', source, tags, nil).and_return(message)
+          robot, 'Lita: help', source, data).and_return(message)
         allow(robot).to receive(:receive).with(message)
       end
 
