@@ -32,17 +32,19 @@ describe Lita::FlowdockMessage, lita: true do
 
   context "a message" do
     let(:body) { 'the system is #down' }
+    let(:initial_message){ 1234 }
     let(:data) do
       {
         'content'         => {
           'title'         => 'Thread title',
           'text'          => body
         },
+        'thread_id'       => 'a385473',
         'event'           => 'comment',
         'flow'            => test_flow,
         'id'              => 2345,
         'thread'          => {
-          'initial_message' => 1234
+          'initial_message' => initial_message
         },
         'tags'            => ['down'],
         'user'            => 3
@@ -58,6 +60,32 @@ describe Lita::FlowdockMessage, lita: true do
       )
 
       message_handler.handle
+    end
+
+    context 'instance methods' do
+      subject{ Lita::FlowdockMessage.new( robot, body, source, data) }
+      it 'has #tags' do
+        expect(subject.tags).to eq(['down'])
+      end
+
+      it 'has #thread_id' do
+        expect(subject.thread_id).to eq('a385473')
+      end
+
+      context 'new_thread?' do
+        context 'non new-thread' do
+          it 'is false' do
+            expect(subject.new_thread?).to be false
+          end
+        end
+
+        context 'a new thread' do
+          let(:initial_message){ 2345 }
+          it 'is true' do
+            expect(subject.new_thread?).to be true
+          end
+        end
+      end
     end
   end
 end
